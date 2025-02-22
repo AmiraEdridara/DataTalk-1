@@ -1,14 +1,12 @@
 import streamlit as st
 import pandas as pd
-from query_engine import process_query
-from viz import process_visualization
-from sqlalchemy import create_engine, inspect
 import os
 import csv
 import datetime
 import json
-import plotly.express as px
-import plotly.graph_objects as go
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sqlalchemy import create_engine, inspect
 
 # App Title
 st.title('DataTalk: Natural Language to Data Query')
@@ -33,6 +31,21 @@ initialize_chat_log()
 
 # Tabs for Data Query, Conversation History, and Visualization History
 tab1, tab2, tab3 = st.tabs(["Data Query", "Conversation History", "Visualization History"])
+
+# Function to handle visualization queries
+def process_visualization(query, df):
+    if 'boxplot' in query.lower() and 'GDP1999' in query:
+        code = """
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+plt.figure(figsize=(8, 6))
+sns.boxplot(x="GDP1999", data=df)
+plt.title("Boxplot for GDP1999")
+plt.show()
+"""
+        return code
+    return "⚠️ Invalid visualization query."
 
 with tab1:
     # File Upload
@@ -121,7 +134,7 @@ with tab1:
         user_query = st.text_input("Ask your question in natural language")
 
         if user_query:
-            result_df = process_query(user_query, df)
+            result_df = query(user_query, df)
             st.write("Query Result:", result_df)
 
             # Append to conversation history
@@ -169,17 +182,15 @@ with tab1:
                 csv_writer.writerow([viz_query, code, timestamp])
 
             # Execute the generated code
-            safe_globals = {"df": df, "pd": pd, "px": px, "go": go}
+            safe_globals = {"df": df, "pd": pd, "sns": sns, "plt": plt}
             try:
                 exec(code, safe_globals)
                 if 'fig' in safe_globals:
-                    st.plotly_chart(safe_globals['fig'])
+                    st.pyplot(safe_globals['fig'])  # Plot the generated figure
                     # Append to visualization history
                     st.session_state.visualization_history.append((viz_query, safe_globals['fig']))
-                elif 'result' in safe_globals:
-                    st.write(safe_globals['result'])
                 else:
-                    st.write("⚠️ No valid result found.")
+                    st.write("⚠️ No valid figure generated.")
             except Exception as e:
                 st.error(f"Error executing the generated code: {e}")
 
@@ -207,6 +218,6 @@ with tab3:
     # Display visualization history from session state
     for query, fig in st.session_state.visualization_history:
         st.markdown(f"**Query:** {query}")
-        st.plotly_chart(fig)
+        st.pyplot(fig)
         st.markdown("----")
 

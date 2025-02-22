@@ -6,6 +6,7 @@ GROQ_API_KEY = "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"
 GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions"
 
 def process_visualization(user_query, df):
+    # Get column names from the uploaded dataset
     columns = df.columns.tolist()
     column_string = ', '.join(columns)
 
@@ -24,6 +25,7 @@ def process_visualization(user_query, df):
     - Do **not** redefine `df` or import Pandas.
     - Return only the code, no explanations.
     - Ensure the code is valid Python syntax.
+    - Your code should work with any column in the dataset dynamically. 
     """
 
     headers = {
