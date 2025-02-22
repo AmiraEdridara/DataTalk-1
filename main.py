@@ -1,15 +1,11 @@
 import streamlit as st
 import pandas as pd
-from query_engine import process_query
+import json
+import datetime
+from query import process_query
 from viz import process_visualization
-from sqlalchemy import create_engine, inspect
 import os
 import csv
-import datetime
-import json
-import plotly.express as px
-import plotly.graph_objects as go
-import ast  # For validating Python code
 
 # App Title
 st.title('DataTalk: Natural Language to Data Query')
@@ -32,159 +28,65 @@ def initialize_chat_log():
 # Initialize chat log file
 initialize_chat_log()
 
-# Function to validate Python code
-def is_valid_python_code(code):
-    try:
-        ast.parse(code)
-        return True
-    except SyntaxError:
-        return False
+# File Upload
+uploaded_file = st.file_uploader("Upload your Excel/CSV file", type=['csv', 'xlsx'])
 
-# Tabs for Data Query, Conversation History, and Visualization History
-tab1, tab2, tab3 = st.tabs(["Data Query", "Conversation History", "Visualization History"])
+if uploaded_file:
+    file_type = uploaded_file.name.split('.')[-1]
 
-with tab1:
-    # File Upload
-    uploaded_file = st.file_uploader("Upload your Excel/CSV/SQL file", type=['csv', 'xlsx', 'sql'])
-
-    if uploaded_file:
-        file_type = uploaded_file.name.split('.')[-1]
-
-        # Handling Excel and CSV Files
-        if file_type in ['csv', 'xlsx']:
-            if file_type == 'csv':
-                df = pd.read_csv(uploaded_file)
-            else:
-                df = pd.read_excel(uploaded_file)
-            
-            st.write("Data Preview:", df.head())
-
-        # Handling SQL Files
-        elif file_type == 'sql':
-            if not os.path.exists('data'):
-                os.makedirs('data')
-
-            file_path = os.path.join('data', uploaded_file.name)
-            with open(file_path, 'wb') as f:
-                f.write(uploaded_file.getbuffer())
-            
-            try:
-                engine = create_engine(f'sqlite:///{file_path}')
-                inspector = inspect(engine)
-                table_names = inspector.get_table_names()
-                st.write("Available Tables:", table_names)
-
-                selected_table = st.selectbox("Select Table", table_names)
-                query = f"SELECT * FROM {selected_table} LIMIT 5"
-                df = pd.read_sql_query(query, engine)
-                st.write("Data Preview:", df.head())
-            except Exception as e:
-                st.error(f"Error reading SQL file: {e}")
-
-        # Interactive Data Exploration
-        st.header("Interactive Data Exploration")
-
-        # Column Selection
-        columns = df.columns.tolist()
-        selected_columns = st.multiselect("Select columns to display", columns, default=columns)
-        if selected_columns:
-            df_display = df[selected_columns]
-            st.write("Filtered Data Preview:", df_display.head())
-
-        # Dynamic Filtering
-        st.subheader("Filter Data")
-        filter_column = st.selectbox("Select column to filter", columns)
-        filter_value = st.text_input(f"Enter value to filter by in '{filter_column}'")
-        if filter_value:
-            try:
-                filter_value = float(filter_value)
-                df_filtered = df[df[filter_column] == filter_value]
-            except ValueError:
-                df_filtered = df[df[filter_column].astype(str).str.contains(filter_value, case=False)]
-            st.write("Filtered Data:", df_filtered)
-
-        # Sorting
-        st.subheader("Sort Data")
-        sort_column = st.selectbox("Select column to sort by", columns)
-        sort_order = st.radio("Sort order", ["Ascending", "Descending"])
-        df_sorted = df.sort_values(by=sort_column, ascending=(sort_order == "Ascending"))
-        st.write("Sorted Data:", df_sorted)
-
-        # Search Functionality
-        st.subheader("Search Data")
-        search_value = st.text_input("Search for a value in the dataset")
-        if search_value:
-            df_search = df[df.apply(lambda row: row.astype(str).str.contains(search_value, case=False).any(axis=1))]
-            st.write("Search Results:", df_search)
-
-        # Natural Language Query Input
-        st.header("Natural Language Query")
-        user_query = st.text_input("Ask your question in natural language")
-
-        if user_query:
-            result_df = process_query(user_query, df)
-            st.write("Query Result:", result_df)
-
-            # Append to conversation history
-            st.session_state.conversation_history.append(("You", user_query))
-
-            result_str = json.dumps(result_df, indent=4) if isinstance(result_df, dict) else str(result_df)
-            st.session_state.conversation_history.append(("Chatbot", result_str))
-
-            # Save to chat log
-            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            with open('chat_log.csv', 'a', newline='', encoding='utf-8') as csvfile:
-                csv_writer = csv.writer(csvfile)
-                csv_writer.writerow([user_query, result_str, timestamp])
-
-        # Visualization Query Input
-        st.header("Visualization Query")
-        viz_query = st.text_input("Enter your visualization query")
-
-        if viz_query:
-            code = process_visualization(viz_query, df)
-            st.write("Generated Code:", code)
-
-            # Append to conversation history
-            st.session_state.conversation_history.append(("You", viz_query))
-            st.session_state.visualization_history.append(("Chatbot", code))
-
-            # Save to chat log
-            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            with open('chat_log.csv', 'a', newline='', encoding='utf-8') as csvfile:
-                csv_writer = csv.writer(csvfile)
-                csv_writer.writerow([viz_query, code, timestamp])
-
-            # Safe execution of generated visualization code
-            safe_globals = {"df": df, "pd": pd, "px": px, "go": go}
-
-            if code.startswith("⚠️"):
-                st.error(code)
-            elif is_valid_python_code(code):
-                try:
-                    exec(code, safe_globals)
-
-                    fig = safe_globals.get("fig")
-                    if isinstance(fig, go.Figure):
-                        st.plotly_chart(fig)
-                        st.session_state.visualization_history.append((viz_query, fig))
-                    else:
-                        st.error("⚠️ No valid visualization was generated.")
-                except Exception as e:
-                    st.error(f"⚠️ Error executing the visualization: {e}")
-            else:
-                st.error("⚠️ Invalid Python code generated.")
-
-with tab2:
-    st.header("Conversation History:")
-    for speaker, text in st.session_state.conversation_history:
-        st.markdown(f"**{speaker}:** {text}")
-
-with tab3:
-    st.header("Visualization History:")
-    for query, fig in st.session_state.visualization_history:
-        st.markdown(f"**Query:** {query}")
-        if isinstance(fig, go.Figure):
-            st.plotly_chart(fig)
+    # Handling Excel and CSV Files
+    if file_type in ['csv', 'xlsx']:
+        if file_type == 'csv':
+            df = pd.read_csv(uploaded_file)
         else:
-            st.error("⚠️ Invalid figure object. Expected a Plotly figure.")
+            df = pd.read_excel(uploaded_file)
+        
+        st.write("Data Preview:", df.head())
+
+# Interactive Data Exploration
+st.header("Interactive Data Exploration")
+columns = df.columns.tolist()
+selected_columns = st.multiselect("Select columns to display", columns, default=columns)
+
+if selected_columns:
+    df_display = df[selected_columns]
+    st.write("Filtered Data Preview:", df_display.head())
+
+# Natural Language Query Input
+st.header("Natural Language Query")
+user_query = st.text_input("Ask your question in natural language")
+
+if user_query:
+    result = process_query(user_query, df)
+    st.write("Query Result:", result)
+
+    # Append to conversation history
+    st.session_state.conversation_history.append(("You", user_query))
+    st.session_state.conversation_history.append(("Chatbot", result))
+
+    # Save to chat log
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    with open('chat_log.csv', 'a', newline='', encoding='utf-8') as csvfile:
+        csv_writer = csv.writer(csvfile)
+        csv_writer.writerow([user_query, result, timestamp])
+
+# Visualization Query Input
+st.header("Visualization Query")
+viz_query = st.text_input("Enter your visualization query")
+
+if viz_query:
+    fig = process_visualization(viz_query, df)
+    st.write("Generated Visualization:", fig)
+
+    # Append to conversation history
+    st.session_state.conversation_history.append(("You", viz_query))
+    st.session_state.visualization_history.append(("Chatbot", fig))
+
+    # Save to chat log
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    with open('chat_log.csv', 'a', newline='', encoding='utf-8') as csvfile:
+        csv_writer = csv.writer(csvfile)
+        csv_writer.writerow([viz_query, str(fig), timestamp])
+
+    # Display the Plotly chart
+    st.plotly_chart(fig)
