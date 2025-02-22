@@ -6,9 +6,9 @@ from sqlalchemy import create_engine, inspect
 import os
 import csv
 import datetime
-import matplotlib.pyplot as plt
-import seaborn as sns
 import json
+import plotly.express as px
+import plotly.graph_objects as go
 
 # App Title
 st.title('DataTalk: Natural Language to Data Query')
@@ -113,7 +113,7 @@ with tab1:
         st.subheader("Search Data")
         search_value = st.text_input("Search for a value in the dataset")
         if search_value:
-            df_search = df[df.apply](lambda row: row.astype(str).str.contains(search_value, case=False).any(axis=1))
+            df_search = df[df.apply(lambda row: row.astype(str).str.contains(search_value, case=False).any(axis=1))]
             st.write("Search Results:", df_search)
 
         # Natural Language Query Input
@@ -169,11 +169,11 @@ with tab1:
                 csv_writer.writerow([viz_query, code, timestamp])
 
             # Execute the generated code
-            safe_globals = {"df": df, "pd": pd, "plt": plt, "sns": sns}
+            safe_globals = {"df": df, "pd": pd, "px": px, "go": go}
             try:
                 exec(code, safe_globals)
                 if 'fig' in safe_globals:
-                    st.pyplot(safe_globals['fig'])
+                    st.plotly_chart(safe_globals['fig'])
                     # Append to visualization history
                     st.session_state.visualization_history.append((viz_query, safe_globals['fig']))
                 elif 'result' in safe_globals:
@@ -207,5 +207,5 @@ with tab3:
     # Display visualization history from session state
     for query, fig in st.session_state.visualization_history:
         st.markdown(f"**Query:** {query}")
-        st.pyplot(fig)
+        st.plotly_chart(fig)
         st.markdown("----")
