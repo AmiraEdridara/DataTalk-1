@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 from query_engine import process_query
@@ -9,12 +8,18 @@ import csv
 import datetime
 import matplotlib.pyplot as plt
 import seaborn as sns
+import json
+
 # App Title
 st.title('DataTalk: Natural Language to Data Query')
 
 # Initialize conversation history
 if 'conversation_history' not in st.session_state:
     st.session_state.conversation_history = []
+
+# Initialize visualization history
+if 'visualization_history' not in st.session_state:
+    st.session_state.visualization_history = []
 
 # Function to initialize chat log file
 def initialize_chat_log():
@@ -26,8 +31,8 @@ def initialize_chat_log():
 # Initialize chat log file
 initialize_chat_log()
 
-# Tabs for Data Query and Conversation History
-tab1, tab2 = st.tabs(["Data Query", "Conversation History"])
+# Tabs for Data Query, Conversation History, and Visualization History
+tab1, tab2, tab3 = st.tabs(["Data Query", "Conversation History", "Visualization History"])
 
 with tab1:
     # File Upload
@@ -126,13 +131,14 @@ with tab1:
                 exec(code, safe_globals)
                 if 'fig' in safe_globals:
                     st.pyplot(safe_globals['fig'])
+                    # Append to visualization history
+                    st.session_state.visualization_history.append((viz_query, safe_globals['fig']))
                 elif 'result' in safe_globals:
                     st.write(safe_globals['result'])
                 else:
                     st.write("⚠️ No valid result found.")
             except Exception as e:
                 st.error(f"Error executing the generated code: {e}")
-
 
 with tab2:
     st.header("Conversation History:")
@@ -151,3 +157,12 @@ with tab2:
                 st.text(f"Chatbot: {row[1]}")
                 st.text(f"Timestamp: {row[2]}")
                 st.markdown("----")
+
+with tab3:
+    st.header("Visualization History:")
+    
+    # Display visualization history from session state
+    for query, fig in st.session_state.visualization_history:
+        st.markdown(f"**Query:** {query}")
+        st.pyplot(fig)
+        st.markdown("----")
