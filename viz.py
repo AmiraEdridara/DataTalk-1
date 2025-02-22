@@ -5,7 +5,7 @@ import json
 # IBM WatsonX API Credentials (Replace with actual values)
 IBM_API_KEY = "hIesJ8JoLKwzsKLzRQm7zmWduGKBTpIv0-ltHEgX8XyX"
 IBM_AUTH_URL = "https://iam.cloud.ibm.com/identity/token"  
-IBM_MODEL_ID = "ibm/granite-13b-instruct"
+IBM_MODEL_ID = "granite-13b-instruct-v2"
 IBM_PROJECT_ID = "e91a92fb-a19e-4ce7-bede-65a6855a1c09"  
 IBM_ENDPOINT = f"https://us-south.ml.cloud.ibm.com/ml/v1/text/generation?version=2023-05-01"
 
