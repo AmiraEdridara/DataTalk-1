@@ -1,0 +1,108 @@
+what is the number of students whose age is greater than 19,9,2025-02-22 15:40:10
+what is the number of students whose age is greater than 21,1,2025-02-22 15:41:06
+what is the total number of male students,266,2025-02-22 15:41:35
+which are the students with grade a,"   Student ID         Name  Age  Gender Grade                    Email
+0         101     Ali Khan   18    Male     A     ali.khan@example.com
+2         103  Usman Javed   18    Male     A  usman.javed@example.com
+5         106   Hina Tariq   19  Female     A   hina.tariq@example.com
+8         109  Omar Farooq   22    Male     A  omar.farooq@example.com",2025-02-22 15:42:37
+Which are the issues with product name consumer loan,⚠️ No valid result found.,2025-02-22 16:06:42
+give me complaint id of product name consumer loan,⚠️ No valid result found.,2025-02-22 16:07:46
+What is the issue of complain id 468882,⚠️ No valid result found.,2025-02-22 16:08:37
+what is the total number of complaints with product name consumer loan,2343,2025-02-22 16:10:21
+create a pie chart of distribution of age,⚠️ No valid result found.,2025-02-22 16:44:27
+create a pie chart for distributionof age,⚠️ No valid result found.,2025-02-22 16:49:39
+number of students with id 101,1,2025-02-22 16:49:51
+what are total number of students,10,2025-02-22 16:50:05
+students with grade a,"   Student ID         Name  ...  Grade                    Email
+0         101     Ali Khan  ...      A     ali.khan@example.com
+2         103  Usman Javed  ...      A  usman.javed@example.com
+5         106   Hina Tariq  ...      A   hina.tariq@example.com
+8         109  Omar Farooq  ...      A  omar.farooq@example.com
+
+[4 rows x 6 columns]",2025-02-22 16:50:17
+students withh age greater than 20,"   Student ID           Name  Age  Gender Grade                      Email
+4         105  Bilal Hussain   21    Male     B  bilal.hussain@example.com
+8         109    Omar Farooq   22    Male     A    omar.farooq@example.com
+9         110    Fatima Shah   21  Female     B    fatima.shah@example.com",2025-02-22 17:01:39
+create a pie chart for distribution of age,"import matplotlib.pyplot as plt
+
+age_counts = df['Age'].value_counts()
+fig = plt.figure(figsize=(8, 6))
+plt.pie(age_counts, labels=age_counts.index, autopct='%1.1f%%')
+plt.title('Distribution of Age')
+plt.show()",2025-02-22 17:12:55
+create a bar chart of age vs grade,"import matplotlib.pyplot as plt
+
+fig = plt.figure(figsize=(10,6))
+plt.bar(df['Age'], df['Grade'])
+plt.xlabel('Age')
+plt.ylabel('Grade')
+plt.title('Age vs Grade')
+plt.show()",2025-02-22 17:17:03
+create a line chart on age vs grade,"import matplotlib.pyplot as plt
+
+# Map grade to numerical values
+grade_map = {'A': 1, 'B': 2}
+
+# Create a line chart
+fig = plt.figure()
+plt.plot(df['Age'], [grade_map[grade] for grade in df['Grade']], marker='o')
+plt.xlabel('Age')
+plt.ylabel('Grade')
+plt.title('Age vs Grade')
+plt.yticks([1, 2], ['A', 'B'])
+plt.show()",2025-02-22 17:17:27
+create a scatter plot on age vs grade,⚠️ Invalid code generated. Skipping execution.,2025-02-22 17:17:46
+create a plot on age vs grade,"import matplotlib.pyplot as plt
+
+fig = plt.figure(figsize=(10,6))
+plt.scatter(df['Age'], df['Grade'].map({'A': 1, 'B': 2}))
+plt.xlabel('Age')
+plt.ylabel('Grade')
+plt.title('Age vs Grade')
+plt.show()",2025-02-22 17:17:59
+number of students with grad ea,4,2025-02-22 17:18:51
+create a plot on age vs grade,"import matplotlib.pyplot as plt
+
+fig = plt.figure(figsize=(10,6))
+plt.scatter(df['Age'], df['Grade'].map({'A': 1, 'B': 2}))
+plt.xlabel('Age')
+plt.ylabel('Grade')
+plt.title('Age vs Grade')
+plt.show()",2025-02-22 17:18:53
+create a bar graph of age vs grade,"import matplotlib.pyplot as plt
+
+fig = plt.figure(figsize=(10,6))
+plt.bar(df['Age'], df['Grade'])
+plt.xlabel('Age')
+plt.ylabel('Grade')
+plt.title('Age vs Grade')
+plt.show()",2025-02-22 17:22:21
+number of students with name ayesha,0,2025-02-22 17:22:42
+create a bar graph of age vs grade,"import matplotlib.pyplot as plt
+
+fig = plt.figure(figsize=(10,6))
+plt.bar(df['Age'], df['Grade'])
+plt.xlabel('Age')
+plt.ylabel('Grade')
+plt.title('Age vs Grade')
+plt.show()",2025-02-22 17:22:43
+number of students with name Ayesha,0,2025-02-22 17:22:49
+create a bar graph of age vs grade,"import matplotlib.pyplot as plt
+
+fig = plt.figure()
+plt.bar(df['Age'], df['Grade'])
+plt.xlabel('Age')
+plt.ylabel('Grade')
+plt.title('Age vs Grade')
+plt.show()",2025-02-22 17:22:50
+number of students with name ali khan,1,2025-02-22 17:22:59
+create a bar graph of age vs grade,"import matplotlib.pyplot as plt
+
+fig = plt.figure(figsize=(10,6))
+plt.bar(df['Age'], df['Grade'])
+plt.xlabel('Age')
+plt.ylabel('Grade')
+plt.title('Age vs Grade')
+plt.show()",2025-02-22 17:23:00
