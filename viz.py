@@ -3,7 +3,7 @@ import pandas as pd
 import json
 
 # IBM WatsonX API Credentials (Replace with your actual API key and endpoint)
-IBM_API_KEY = "ApiKey-9eec6e59-90b1-4006-9a06-eafe8379fd02"
+IBM_API_KEY = "hIesJ8JoLKwzsKLzRQm7zmWduGKBTpIv0-ltHEgX8XyX"
 IBM_ENDPOINT = "https://us-south.ml.cloud.ibm.com"
 
 def process_visualization(user_query, df):
