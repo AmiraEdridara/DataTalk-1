@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import json
 import datetime
-from query import process_query
 from viz import process_visualization
 import os
 import csv
@@ -55,6 +54,29 @@ if selected_columns:
 # Natural Language Query Input
 st.header("Natural Language Query")
 user_query = st.text_input("Ask your question in natural language")
+
+def process_query(user_query, df):
+    """
+    This function processes a user's natural language query with simple logic
+    to simulate how the query might be processed and return results.
+    """
+    try:
+        if "sum" in user_query.lower():
+            column_name = user_query.split("sum of")[-1].strip()
+            if column_name in df.columns:
+                return df[column_name].sum()
+            else:
+                return f"Column '{column_name}' not found in data."
+        elif "average" in user_query.lower():
+            column_name = user_query.split("average of")[-1].strip()
+            if column_name in df.columns:
+                return df[column_name].mean()
+            else:
+                return f"Column '{column_name}' not found in data."
+        else:
+            return "Query not recognized."
+    except Exception as e:
+        return f"Error processing query: {str(e)}"
 
 if user_query:
     result = process_query(user_query, df)
