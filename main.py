@@ -209,3 +209,4 @@ with tab3:
         st.markdown(f"**Query:** {query}")
         st.plotly_chart(fig)
         st.markdown("----")
+

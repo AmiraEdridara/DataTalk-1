@@ -5,48 +5,6 @@ import json
 GROQ_API_KEY = "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"
 GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions"
 
-
-# def process_query(user_query, df):
-#     columns = df.columns.tolist()
-#     column_string = ', '.join(columns)
-
-#     # Constructing Prompt for GROQ
-#     prompt = (f"Convert this natural language query into a pandas query: '{user_query}'. "
-#               f"The available columns are: {column_string}. "
-#               "Be robust and predict column names if they are not exactly mentioned.")
-
-#     # Querying GROQ API
-#     headers = {
-#         "Authorization": f"Bearer {GROQ_API_KEY}",
-#         "Content-Type": "application/json"
-#     }
-#     data = {
-#         "model": "text-davinci-003",
-#         "prompt": prompt,
-#         "max_tokens": 100,
-#         "temperature": 0.2
-#     }
-
-#     response = requests.post(GROQ_ENDPOINT, headers=headers, json=data)
-#     response_data = response.json()
-
-#     # Extracting Query
-#     code_query = response_data['choices'][0]['text'].strip()
-
-#     # Executing the Generated Query
-#     try:
-#         result_df = eval(code_query)
-#         return result_df
-#     except Exception as e:
-#         return f"Error in query execution: {e}"
-    
-import requests
-import pandas as pd
-import json
-
-GROQ_API_KEY = "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"
-GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions"
-
 def process_query(user_query, df):
     columns = df.columns.tolist()
     column_string = ', '.join(columns)
