@@ -106,3 +106,11 @@ plt.xlabel('Age')
 plt.ylabel('Grade')
 plt.title('Age vs Grade')
 plt.show()",2025-02-22 17:23:00
+Plot me a line chart of the ages,"import matplotlib.pyplot as plt
+
+fig = plt.figure()
+plt.plot(df['Age'].values, marker='o')
+plt.title('Line Chart of Ages')
+plt.xlabel('Student Index')
+plt.ylabel('Age')
+plt.show()",2025-02-22 13:39:28
