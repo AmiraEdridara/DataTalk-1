@@ -9,6 +9,7 @@ import datetime
 import json
 import plotly.express as px
 import plotly.graph_objects as go
+import ast  # For validating Python code
 
 # App Title
 st.title('DataTalk: Natural Language to Data Query')
@@ -30,6 +31,14 @@ def initialize_chat_log():
 
 # Initialize chat log file
 initialize_chat_log()
+
+# Function to validate Python code
+def is_valid_python_code(code):
+    try:
+        ast.parse(code)
+        return True
+    except SyntaxError:
+        return False
 
 # Tabs for Data Query, Conversation History, and Visualization History
 tab1, tab2, tab3 = st.tabs(["Data Query", "Conversation History", "Visualization History"])
@@ -171,19 +180,24 @@ with tab1:
             # Execute the generated code
             safe_globals = {"df": df, "pd": pd, "px": px, "go": go}
             try:
-                exec(code, safe_globals)
-                if 'fig' in safe_globals:
-                    fig = safe_globals['fig']
-                    if isinstance(fig, go.Figure):  # Fix: Only check for go.Figure
-                        st.plotly_chart(fig)
-                        # Append to visualization history
-                        st.session_state.visualization_history.append((viz_query, fig))
+                if code.startswith("⚠️"):
+                    st.error(code)  # Display error message
+                elif is_valid_python_code(code):  # Validate code syntax
+                    exec(code, safe_globals)
+                    if 'fig' in safe_globals:
+                        fig = safe_globals['fig']
+                        if isinstance(fig, go.Figure):  # Check if fig is a Plotly figure
+                            st.plotly_chart(fig)
+                            # Append to visualization history
+                            st.session_state.visualization_history.append((viz_query, fig))
+                        else:
+                            st.error("⚠️ Invalid figure object. Expected a Plotly figure.")
+                    elif 'result' in safe_globals:
+                        st.write(safe_globals['result'])
                     else:
-                        st.error("⚠️ Invalid figure object. Expected a Plotly figure.")
-                elif 'result' in safe_globals:
-                    st.write(safe_globals['result'])
+                        st.write("⚠️ No valid result found.")
                 else:
-                    st.write("⚠️ No valid result found.")
+                    st.error("⚠️ Invalid Python code generated.")
             except Exception as e:
                 st.error(f"Error executing the generated code: {e}")
 
@@ -211,7 +225,7 @@ with tab3:
     # Display visualization history from session state
     for query, fig in st.session_state.visualization_history:
         st.markdown(f"**Query:** {query}")
-        if isinstance(fig, go.Figure):  # Fix: Only check for go.Figure
+        if isinstance(fig, go.Figure):  # Check if fig is a Plotly figure
             st.plotly_chart(fig)
         else:
             st.error("⚠️ Invalid figure object. Expected a Plotly figure.")

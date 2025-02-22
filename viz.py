@@ -23,6 +23,7 @@ def process_visualization(user_query, df):
     - Do **not** use Matplotlib (`plt`).
     - Do **not** redefine `df` or import Pandas.
     - Return only the code, no explanations.
+    - Ensure the code is valid Python syntax.
     """
 
     headers = {
