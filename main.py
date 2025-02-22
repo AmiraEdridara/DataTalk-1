@@ -75,7 +75,49 @@ with tab1:
             except Exception as e:
                 st.error(f"Error reading SQL file: {e}")
 
+        # Interactive Data Exploration
+        st.header("Interactive Data Exploration")
+
+        # Column Selection
+        columns = df.columns.tolist()
+        selected_columns = st.multiselect("Select columns to display", columns, default=columns)
+        if selected_columns:
+            df_display = df[selected_columns]
+            st.write("Filtered Data Preview:", df_display.head())
+
+        # Dynamic Filtering
+        st.subheader("Filter Data")
+        filter_column = st.selectbox("Select column to filter", columns)
+        filter_value = st.text_input(f"Enter value to filter by in '{filter_column}'")
+        if filter_value:
+            try:
+                # Try numeric filtering
+                filter_value = float(filter_value)
+                df_filtered = df[df[filter_column] == filter_value]
+            except ValueError:
+                # Fallback to string filtering
+                df_filtered = df[df[filter_column].astype(str).str.contains(filter_value, case=False)]
+            st.write("Filtered Data:", df_filtered)
+
+        # Sorting
+        st.subheader("Sort Data")
+        sort_column = st.selectbox("Select column to sort by", columns)
+        sort_order = st.radio("Sort order", ["Ascending", "Descending"])
+        if sort_order == "Ascending":
+            df_sorted = df.sort_values(by=sort_column, ascending=True)
+        else:
+            df_sorted = df.sort_values(by=sort_column, ascending=False)
+        st.write("Sorted Data:", df_sorted)
+
+        # Search Functionality
+        st.subheader("Search Data")
+        search_value = st.text_input("Search for a value in the dataset")
+        if search_value:
+            df_search = df[df.apply](lambda row: row.astype(str).str.contains(search_value, case=False).any(axis=1))
+            st.write("Search Results:", df_search)
+
         # Natural Language Query Input
+        st.header("Natural Language Query")
         user_query = st.text_input("Ask your question in natural language")
 
         if user_query:
@@ -110,6 +152,7 @@ with tab1:
                 csv_writer.writerow([user_query, result_str, timestamp])
         
         # Visualization Query Input
+        st.header("Visualization Query")
         viz_query = st.text_input("Enter your visualization query")
         if viz_query:
             code = process_visualization(viz_query, df)
@@ -117,7 +160,7 @@ with tab1:
 
             # Append to conversation history
             st.session_state.conversation_history.append(("You", viz_query))
-            st.session_state.conversation_history.append(("Chatbot", code))
+            st.session_state.visualization_history.append(("Chatbot", code))
 
             # Save to chat log
             timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
