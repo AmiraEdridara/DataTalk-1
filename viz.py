@@ -4,7 +4,7 @@ import json
 
 # IBM WatsonX API Credentials (Replace with your actual API key and endpoint)
 IBM_API_KEY = "hIesJ8JoLKwzsKLzRQm7zmWduGKBTpIv0-ltHEgX8XyX"
-IBM_ENDPOINT = "https://us-south.ml.cloud.ibm.com"
+IBM_ENDPOINT = "https://us-south.ml.cloud.ibm.com/v2/generate-text"
 
 def process_visualization(user_query, df):
     columns = df.columns.tolist()
