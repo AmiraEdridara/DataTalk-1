@@ -11,15 +11,16 @@ def process_visualization(user_query, df):
 
     # Constructing Prompt for GROQ
     prompt = f"""
-    Convert this natural language query into a visualization code using matplotlib or seaborn:
+    Convert this natural language query into a visualization code using **Plotly**:
     Query: {user_query}
 
     Dataset structure:
     {df.head(3).to_dict()}
 
     **Rules:**
-    - Use matplotlib or seaborn for visualizations.
+    - Use **Plotly Express (`px`)** or **Plotly Graph Objects (`go`)** for visualizations.
     - Assign the result to `fig` for visualizations.
+    - Do **not** use Matplotlib (`plt`).
     - Do **not** redefine `df` or import Pandas.
     - Return only the code, no explanations.
     """
@@ -31,7 +32,7 @@ def process_visualization(user_query, df):
     payload = {
         "model": "llama-3.3-70b-versatile",
         "messages": [
-            {"role": "system", "content": "You are an AI that converts natural language queries into visualization code using matplotlib or seaborn."},
+            {"role": "system", "content": "You are an AI that converts natural language queries into visualization code using Plotly."},
             {"role": "user", "content": prompt}
         ],
         "max_tokens": 150,
