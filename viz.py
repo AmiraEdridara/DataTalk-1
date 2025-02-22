@@ -1,6 +1,8 @@
 import requests
 import pandas as pd
 import json
+import plotly.express as px
+import plotly.graph_objects as go
 
 GROQ_API_KEY = "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"
 GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions"
@@ -18,7 +20,7 @@ def process_visualization(user_query, df):
     {df.head(3).to_dict()}
 
     **Rules:**
-    - Use Plotly for visualizations.
+    - Use Plotly Express (`px`) or Plotly Graph Objects (`go`) for visualizations.
     - Assign the result to `fig` for visualizations.
     - Do **not** redefine `df` or import Pandas.
     - Return only the code, no explanations.

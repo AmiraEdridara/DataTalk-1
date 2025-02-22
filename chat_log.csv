@@ -303,3 +303,9 @@ plot me a line chart of the ages,"Figure({
                'xaxis': {'anchor': 'y', 'domain': [0.0, 1.0], 'title': {'text': 'Student ID'}},
                'yaxis': {'anchor': 'x', 'domain': [0.0, 1.0], 'title': {'text': 'Name'}}}
 })",2025-02-22 18:51:14
+how many females are above the age of 16,5,2025-02-22 19:04:55
+how many females are above the age of 16,5,2025-02-22 19:05:03
+plot me a line chart of the ages,"import plotly.express as px
+
+fig = px.line(x=df['Name'], y=df['Age'])
+fig.update_layout(title='Line Chart of Ages', xaxis_title='Name', yaxis_title='Age')",2025-02-22 19:05:04
