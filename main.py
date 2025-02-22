@@ -230,3 +230,5 @@ with tab3:
         else:
             st.error("⚠️ Invalid figure object. Expected a Plotly figure.")
         st.markdown("----")
+
+print("Generated Code:", code)
