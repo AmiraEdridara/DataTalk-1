@@ -1,10 +1,14 @@
 import streamlit as st
 import pandas as pd
-import json
-import datetime
+from query_engine import process_query
 from viz import process_visualization
+from sqlalchemy import create_engine, inspect
 import os
 import csv
+import datetime
+import json
+import plotly.express as px
+from lightweight_charts.widgets import StreamlitChart
 
 # App Title
 st.title('DataTalk: Natural Language to Data Query')
@@ -28,7 +32,7 @@ def initialize_chat_log():
 initialize_chat_log()
 
 # File Upload
-uploaded_file = st.file_uploader("Upload your Excel/CSV file", type=['csv', 'xlsx'])
+uploaded_file = st.file_uploader("Upload your Excel/CSV/SQL file", type=['csv', 'xlsx', 'sql'])
 
 if uploaded_file:
     file_type = uploaded_file.name.split('.')[-1]
@@ -42,73 +46,121 @@ if uploaded_file:
         
         st.write("Data Preview:", df.head())
 
-# Interactive Data Exploration
-st.header("Interactive Data Exploration")
-columns = df.columns.tolist()
-selected_columns = st.multiselect("Select columns to display", columns, default=columns)
+    # Handling SQL Files
+    elif file_type == 'sql':
+        # Ensure the 'data' directory exists
+        if not os.path.exists('data'):
+            os.makedirs('data')
 
-if selected_columns:
-    df_display = df[selected_columns]
-    st.write("Filtered Data Preview:", df_display.head())
+        # Save file to local storage
+        file_path = os.path.join('data', uploaded_file.name)
+        with open(file_path, 'wb') as f:
+            f.write(uploaded_file.getbuffer())
+        
+        try:
+            engine = create_engine(f'sqlite:///{file_path}')
+            inspector = inspect(engine)
+            table_names = inspector.get_table_names()
+            st.write("Available Tables:", table_names)
 
-# Natural Language Query Input
-st.header("Natural Language Query")
-user_query = st.text_input("Ask your question in natural language")
+            # Selecting Table
+            selected_table = st.selectbox("Select Table", table_names)
+            query = f"SELECT * FROM {selected_table} LIMIT 5"
+            df = pd.read_sql_query(query, engine)
+            st.write("Data Preview:", df.head())
+        except Exception as e:
+            st.error(f"Error reading SQL file: {e}")
 
-def process_query(user_query, df):
-    """
-    This function processes a user's natural language query with simple logic
-    to simulate how the query might be processed and return results.
-    """
-    try:
-        if "sum" in user_query.lower():
-            column_name = user_query.split("sum of")[-1].strip()
-            if column_name in df.columns:
-                return df[column_name].sum()
-            else:
-                return f"Column '{column_name}' not found in data."
-        elif "average" in user_query.lower():
-            column_name = user_query.split("average of")[-1].strip()
-            if column_name in df.columns:
-                return df[column_name].mean()
-            else:
-                return f"Column '{column_name}' not found in data."
+    # Natural Language Query Input
+    user_query = st.text_input("Ask your question in natural language")
+
+    if user_query:
+        result_df = process_query(user_query, df)
+        st.write("Query Result:", result_df)
+
+        # Append to conversation history
+        st.session_state.conversation_history.append(("You", user_query))
+        
+        # Convert result to string based on its type
+        if isinstance(result_df, pd.DataFrame):
+            result_str = result_df.to_string()
+        elif isinstance(result_df, (int, float)):
+            result_str = str(result_df)
+        elif isinstance(result_df, pd.Series):
+            result_str = result_df.to_string()
+        elif isinstance(result_df, dict):
+            result_str = json.dumps(result_df, indent=4)
+        elif isinstance(result_df, tuple):
+            result_str = str(result_df)
+        elif isinstance(result_df, list):
+            result_str = ", ".join(map(str, result_df))
         else:
-            return "Query not recognized."
-    except Exception as e:
-        return f"Error processing query: {str(e)}"
+            result_str = "⚠️ No valid result found."
 
-if user_query:
-    result = process_query(user_query, df)
-    st.write("Query Result:", result)
+        st.session_state.conversation_history.append(("Chatbot", result_str))
 
-    # Append to conversation history
-    st.session_state.conversation_history.append(("You", user_query))
-    st.session_state.conversation_history.append(("Chatbot", result))
+        # Save to chat log
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        with open('chat_log.csv', 'a', newline='', encoding='utf-8') as csvfile:
+            csv_writer = csv.writer(csvfile)
+            csv_writer.writerow([user_query, result_str, timestamp])
+    
+    # Visualization Query Input
+    viz_query = st.text_input("Enter your visualization query")
+    if viz_query:
+        code = process_visualization(viz_query, df)
+        st.write("Generated Code:", code)
 
-    # Save to chat log
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    with open('chat_log.csv', 'a', newline='', encoding='utf-8') as csvfile:
-        csv_writer = csv.writer(csvfile)
-        csv_writer.writerow([user_query, result, timestamp])
+        # Append to conversation history
+        st.session_state.conversation_history.append(("You", viz_query))
+        st.session_state.conversation_history.append(("Chatbot", code))
 
-# Visualization Query Input
-st.header("Visualization Query")
-viz_query = st.text_input("Enter your visualization query")
+        # Save to chat log
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        with open('chat_log.csv', 'a', newline='', encoding='utf-8') as csvfile:
+            csv_writer = csv.writer(csvfile)
+            csv_writer.writerow([viz_query, code, timestamp])
 
-if viz_query:
-    fig = process_visualization(viz_query, df)
-    st.write("Generated Visualization:", fig)
+        # Execute the generated code
+        safe_globals = {"df": df, "pd": pd, "px": px, "StreamlitChart": StreamlitChart}
+        try:
+            exec(code, safe_globals)
+            if 'fig' in safe_globals:
+                st.plotly_chart(safe_globals['fig'])
+                # Append to visualization history
+                st.session_state.visualization_history.append((viz_query, safe_globals['fig']))
+            elif 'result' in safe_globals:
+                st.write(safe_globals['result'])
+            else:
+                st.write("⚠️ No valid result found.")
+        except Exception as e:
+            st.error(f"Error executing the generated code: {e}")
 
-    # Append to conversation history
-    st.session_state.conversation_history.append(("You", viz_query))
-    st.session_state.visualization_history.append(("Chatbot", fig))
+# Conversation History Container
+with st.container():
+    st.header("Conversation History:")
+    
+    # Display conversation history from session state
+    for speaker, text in st.session_state.conversation_history:
+        st.markdown(f"**{speaker}:** {text}")
 
-    # Save to chat log
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    with open('chat_log.csv', 'a', newline='', encoding='utf-8') as csvfile:
-        csv_writer = csv.writer(csvfile)
-        csv_writer.writerow([viz_query, str(fig), timestamp])
+    # Display conversation history from chat log file
+    if os.path.exists('chat_log.csv'):
+        with open('chat_log.csv', 'r', encoding='utf-8') as csvfile:
+            csv_reader = csv.reader(csvfile)
+            next(csv_reader, None)  # Skip header
+            for row in csv_reader:
+                st.text(f"User: {row[0]}")
+                st.text(f"Chatbot: {row[1]}")
+                st.text(f"Timestamp: {row[2]}")
+                st.markdown("----")
 
-    # Display the Plotly chart
-    st.plotly_chart(fig)
+# Visualization History Container
+with st.container():
+    st.header("Visualization History:")
+    
+    # Display visualization history from session state
+    for query, fig in st.session_state.visualization_history:
+        st.markdown(f"**Query:** {query}")
+        st.plotly_chart(fig)
+        st.markdown("----")

@@ -22,27 +22,26 @@ html, body, [class*="css"] {
 
 /* CONTAINER CSS */
 [data-testid="stVerticalBlock"] > [style*="flex-direction: column;"] > [data-testid="stVerticalBlock"] {
-    border: 1px solid #52546a;
-    border-radius: 15px;         
-    padding-left: 30px;          
-    padding-top: 20px;           
-    padding-bottom: 20px;        
-    box-shadow: -6px 8px 20px 1px rgba(0, 0, 0, 0.3); 
-    background-color: #1e1e2f;   
+    border: 1px groove #52546a;
+    border-radius: 10px;
+    padding-left: 25px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    box-shadow: -6px 8px 20px 1px #00000052;
 }
 
 /* CUSTOM MARKDOWN CLASSES */
 .dashboard_title {
-    font-size: 36px;            
+    font-size: 35px; 
     font-family: 'Space Grotesk';
     font-weight: 700;
-    text-align: center;         
-    padding-bottom: 35px;       
-    color: #ffffff;             
+    line-height: 1.2;
+    text-align: left;
+    padding-bottom: 35px;
 }
 
 .price_details {
-    font-size: 30px;            
+    font-size: 30px; 
     font-family: 'Space Grotesk';
     color: #f6f6f6;
     font-weight: 900;
@@ -99,65 +98,4 @@ html, body, [class*="css"] {
     text-align: left;
     line-height: 0.2;
     padding-top: 10px;
-}
-
-/* INPUT FIELDS */
-.stTextInput {
-    background-color: #2e2e3e;
-    border: 1px solid #52546a;
-    border-radius: 8px;
-    color: #f6f6f6;
-    font-size: 16px;
-    padding: 12px;
-    margin-bottom: 15px;
-}
-
-.stTextInput:focus {
-    border-color: #f7931a;
-    background-color: #2e2e4e;
-    outline: none;
-}
-
-/* QUERY RESULTS */
-.query_result {
-    font-size: 20px;            
-    font-family: 'Space Grotesk';
-    font-weight: 600;
-    color: #f6f6f6;             
-    padding: 10px 20px;         
-    border-radius: 10px;        
-    background-color: #2f2f3e;  
-}
-
-/* PLOTLY CHART CONTAINER */
-.stPlotlyChart {
-    margin-top: 30px;            
-    border-radius: 15px;         
-    border: 1px solid #52546a;   
-    box-shadow: -4px 6px 15px rgba(0, 0, 0, 0.2);  
-    padding: 20px;               
-    background-color: #1e1e2f;   
-}
-
-/* SPECIFIC VISUALIZATION TITLE */
-.chart_title {
-    font-size: 24px;
-    color: #f7931a;
-    font-weight: bold;
-    padding-bottom: 20px;
-}
-
-/* BUTTONS */
-.stButton {
-    background-color: #f7931a;
-    border-radius: 8px;
-    color: #ffffff;
-    font-weight: bold;
-    font-size: 16px;
-    padding: 10px 20px;
-}
-
-.stButton:hover {
-    background-color: #f57c00;  
-    cursor: pointer;
 }
