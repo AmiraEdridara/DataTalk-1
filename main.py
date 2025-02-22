@@ -231,4 +231,3 @@ with tab3:
             st.error("⚠️ Invalid figure object. Expected a Plotly figure.")
         st.markdown("----")
 
-print("Generated Code:", code)
