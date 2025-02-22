@@ -173,9 +173,13 @@ with tab1:
             try:
                 exec(code, safe_globals)
                 if 'fig' in safe_globals:
-                    st.plotly_chart(safe_globals['fig'])
-                    # Append to visualization history
-                    st.session_state.visualization_history.append((viz_query, safe_globals['fig']))
+                    fig = safe_globals['fig']
+                    if isinstance(fig, (go.Figure, px.Figure)):
+                        st.plotly_chart(fig)
+                        # Append to visualization history
+                        st.session_state.visualization_history.append((viz_query, fig))
+                    else:
+                        st.error("⚠️ Invalid figure object. Expected a Plotly figure.")
                 elif 'result' in safe_globals:
                     st.write(safe_globals['result'])
                 else:
@@ -207,5 +211,8 @@ with tab3:
     # Display visualization history from session state
     for query, fig in st.session_state.visualization_history:
         st.markdown(f"**Query:** {query}")
-        st.plotly_chart(fig)
+        if isinstance(fig, (go.Figure, px.Figure)):
+            st.plotly_chart(fig)
+        else:
+            st.error("⚠️ Invalid figure object. Expected a Plotly figure.")
         st.markdown("----")
