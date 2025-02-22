@@ -174,7 +174,7 @@ with tab1:
                 exec(code, safe_globals)
                 if 'fig' in safe_globals:
                     fig = safe_globals['fig']
-                    if isinstance(fig, (go.Figure, px.Figure)):
+                    if isinstance(fig, go.Figure):  # Fix: Only check for go.Figure
                         st.plotly_chart(fig)
                         # Append to visualization history
                         st.session_state.visualization_history.append((viz_query, fig))
@@ -211,7 +211,7 @@ with tab3:
     # Display visualization history from session state
     for query, fig in st.session_state.visualization_history:
         st.markdown(f"**Query:** {query}")
-        if isinstance(fig, (go.Figure, px.Figure)):
+        if isinstance(fig, go.Figure):  # Fix: Only check for go.Figure
             st.plotly_chart(fig)
         else:
             st.error("⚠️ Invalid figure object. Expected a Plotly figure.")
