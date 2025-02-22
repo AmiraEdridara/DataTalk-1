@@ -2,14 +2,15 @@ import requests
 import pandas as pd
 import json
 
-GROQ_API_KEY = "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"
-GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions"
+# IBM WatsonX API Credentials (Replace with your actual API key and endpoint)
+IBM_API_KEY = "ApiKey-9eec6e59-90b1-4006-9a06-eafe8379fd02"
+IBM_ENDPOINT = "https://us-south.ml.cloud.ibm.com"
 
 def process_visualization(user_query, df):
     columns = df.columns.tolist()
     column_string = ', '.join(columns)
 
-    # Constructing Prompt for GROQ
+    # Constructing Prompt for IBM WatsonX
     prompt = f"""
     Convert this natural language query into a visualization code using **Plotly**:
     Query: {user_query}
@@ -27,29 +28,23 @@ def process_visualization(user_query, df):
     """
 
     headers = {
-        "Authorization": f"Bearer {GROQ_API_KEY}",
+        "Authorization": f"Bearer {IBM_API_KEY}",
         "Content-Type": "application/json"
     }
+    
     payload = {
-        "model": "llama-3.3-70b-versatile",
-        "messages": [
-            {"role": "system", "content": "You are an AI that converts natural language queries into visualization code using Plotly."},
-            {"role": "user", "content": prompt}
-        ],
-        "max_tokens": 150,
-        "temperature": 0.2
+        "input": {"text": prompt},
+        "alternate_intents": False
     }
 
-    response = requests.post(GROQ_ENDPOINT, headers=headers, data=json.dumps(payload))
+    response = requests.post(IBM_ENDPOINT, headers=headers, json=payload)
 
     # Check for successful response
     if response.status_code == 200:
         response_data = response.json()
-        print("Response Data:", response_data)  # Debugging Line
-        
-        # Safely check for 'choices' key
-        if 'choices' in response_data:
-            code = response_data["choices"][0]["message"]["content"].strip()
+
+        if 'output' in response_data:
+            code = response_data["output"]["generic"][0]["text"].strip()
             code = code.replace("```python", "").replace("```", "").strip()
 
             # Prevent code from redefining the dataset

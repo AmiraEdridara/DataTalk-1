@@ -61,11 +61,9 @@ with tab1:
 
         # Handling SQL Files
         elif file_type == 'sql':
-            # Ensure the 'data' directory exists
             if not os.path.exists('data'):
                 os.makedirs('data')
 
-            # Save file to local storage
             file_path = os.path.join('data', uploaded_file.name)
             with open(file_path, 'wb') as f:
                 f.write(uploaded_file.getbuffer())
@@ -76,7 +74,6 @@ with tab1:
                 table_names = inspector.get_table_names()
                 st.write("Available Tables:", table_names)
 
-                # Selecting Table
                 selected_table = st.selectbox("Select Table", table_names)
                 query = f"SELECT * FROM {selected_table} LIMIT 5"
                 df = pd.read_sql_query(query, engine)
@@ -100,11 +97,9 @@ with tab1:
         filter_value = st.text_input(f"Enter value to filter by in '{filter_column}'")
         if filter_value:
             try:
-                # Try numeric filtering
                 filter_value = float(filter_value)
                 df_filtered = df[df[filter_column] == filter_value]
             except ValueError:
-                # Fallback to string filtering
                 df_filtered = df[df[filter_column].astype(str).str.contains(filter_value, case=False)]
             st.write("Filtered Data:", df_filtered)
 
@@ -112,10 +107,7 @@ with tab1:
         st.subheader("Sort Data")
         sort_column = st.selectbox("Select column to sort by", columns)
         sort_order = st.radio("Sort order", ["Ascending", "Descending"])
-        if sort_order == "Ascending":
-            df_sorted = df.sort_values(by=sort_column, ascending=True)
-        else:
-            df_sorted = df.sort_values(by=sort_column, ascending=False)
+        df_sorted = df.sort_values(by=sort_column, ascending=(sort_order == "Ascending"))
         st.write("Sorted Data:", df_sorted)
 
         # Search Functionality
@@ -135,23 +127,8 @@ with tab1:
 
             # Append to conversation history
             st.session_state.conversation_history.append(("You", user_query))
-            
-            # Convert result to string based on its type
-            if isinstance(result_df, pd.DataFrame):
-                result_str = result_df.to_string()
-            elif isinstance(result_df, (int, float)):
-                result_str = str(result_df)
-            elif isinstance(result_df, pd.Series):
-                result_str = result_df.to_string()
-            elif isinstance(result_df, dict):
-                result_str = json.dumps(result_df, indent=4)
-            elif isinstance(result_df, tuple):
-                result_str = str(result_df)
-            elif isinstance(result_df, list):
-                result_str = ", ".join(map(str, result_df))
-            else:
-                result_str = "⚠️ No valid result found."
 
+            result_str = json.dumps(result_df, indent=4) if isinstance(result_df, dict) else str(result_df)
             st.session_state.conversation_history.append(("Chatbot", result_str))
 
             # Save to chat log
@@ -159,10 +136,11 @@ with tab1:
             with open('chat_log.csv', 'a', newline='', encoding='utf-8') as csvfile:
                 csv_writer = csv.writer(csvfile)
                 csv_writer.writerow([user_query, result_str, timestamp])
-        
+
         # Visualization Query Input
         st.header("Visualization Query")
         viz_query = st.text_input("Enter your visualization query")
+
         if viz_query:
             code = process_visualization(viz_query, df)
             st.write("Generated Code:", code)
@@ -177,57 +155,36 @@ with tab1:
                 csv_writer = csv.writer(csvfile)
                 csv_writer.writerow([viz_query, code, timestamp])
 
-            # Execute the generated code
+            # Safe execution of generated visualization code
             safe_globals = {"df": df, "pd": pd, "px": px, "go": go}
-            try:
-                if code.startswith("⚠️"):
-                    st.error(code)  # Display error message
-                elif is_valid_python_code(code):  # Validate code syntax
+
+            if code.startswith("⚠️"):
+                st.error(code)
+            elif is_valid_python_code(code):
+                try:
                     exec(code, safe_globals)
-                    if 'fig' in safe_globals:
-                        fig = safe_globals['fig']
-                        if isinstance(fig, go.Figure):  # Check if fig is a Plotly figure
-                            st.plotly_chart(fig)
-                            # Append to visualization history
-                            st.session_state.visualization_history.append((viz_query, fig))
-                        else:
-                            st.error("⚠️ Invalid figure object. Expected a Plotly figure.")
-                    elif 'result' in safe_globals:
-                        st.write(safe_globals['result'])
+
+                    fig = safe_globals.get("fig")
+                    if isinstance(fig, go.Figure):
+                        st.plotly_chart(fig)
+                        st.session_state.visualization_history.append((viz_query, fig))
                     else:
-                        st.write("⚠️ No valid result found.")
-                else:
-                    st.error("⚠️ Invalid Python code generated.")
-            except Exception as e:
-                st.error(f"Error executing the generated code: {e}")
+                        st.error("⚠️ No valid visualization was generated.")
+                except Exception as e:
+                    st.error(f"⚠️ Error executing the visualization: {e}")
+            else:
+                st.error("⚠️ Invalid Python code generated.")
 
 with tab2:
     st.header("Conversation History:")
-    
-    # Display conversation history from session state
     for speaker, text in st.session_state.conversation_history:
         st.markdown(f"**{speaker}:** {text}")
 
-    # Display conversation history from chat log file
-    if os.path.exists('chat_log.csv'):
-        with open('chat_log.csv', 'r', encoding='utf-8') as csvfile:
-            csv_reader = csv.reader(csvfile)
-            next(csv_reader, None)  # Skip header
-            for row in csv_reader:
-                st.text(f"User: {row[0]}")
-                st.text(f"Chatbot: {row[1]}")
-                st.text(f"Timestamp: {row[2]}")
-                st.markdown("----")
-
 with tab3:
     st.header("Visualization History:")
-    
-    # Display visualization history from session state
     for query, fig in st.session_state.visualization_history:
         st.markdown(f"**Query:** {query}")
-        if isinstance(fig, go.Figure):  # Check if fig is a Plotly figure
+        if isinstance(fig, go.Figure):
             st.plotly_chart(fig)
         else:
             st.error("⚠️ Invalid figure object. Expected a Plotly figure.")
-        st.markdown("----")
-
